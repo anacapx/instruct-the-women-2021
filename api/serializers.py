@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import PackageRelease, Project
 from .pypi import version_exists, latest_version
 
+from rest_framework.renderers import JSONRenderer
 
 class PackageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,11 +12,20 @@ class PackageSerializer(serializers.ModelSerializer):
         extra_kwargs = {"version": {"required": False}}
 
     def validate(self, data):
-        # TODO
-        # Validar o pacote, checar se ele existe na versão especificada.
-        # Buscar a última versão caso ela não seja especificada pelo usuário.
-        # Subir a exceção `serializers.ValidationError()` se o pacote não
-        # for válido.
+
+        if latest_version(data["name"]) == "None":        
+            raise serializers.ValidationError()
+            return                        
+
+        if "version" in data.keys():            
+            
+            v_exists = version_exists(data["name"], data["version"])
+            if v_exists == False:
+                raise serializers.ValidationError()
+                return            
+        else:
+            data["version"] = latest_version(data["name"])                 
+        
         return data
 
 
@@ -24,14 +34,16 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = ["name", "packages"]
 
-    packages = PackageSerializer(many=True)
+    packages = PackageSerializer(many=True)  
 
     def create(self, validated_data):
-        # TODO
-        # Salvar o projeto e seus pacotes associados.
-        #
-        # Algumas referência para uso de models do Django:
-        # - https://docs.djangoproject.com/en/3.2/topics/db/models/
-        # - https://www.django-rest-framework.org/api-guide/serializers/#saving-instances
-        packages = validated_data["packages"]
-        return Project(name=validated_data["name"])
+        packages = validated_data["packages"]               
+
+        projeto = Project(name=validated_data["name"])
+        projeto.save()
+
+        for pack in packages:
+            package = PackageRelease(name=pack["name"], version=pack["version"], project=projeto)
+            package.save()      
+        
+        return projeto
