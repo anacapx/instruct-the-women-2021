@@ -19,7 +19,7 @@ def version_exists(package_name, version):
         if version in versions: return True
         else: return False
     except Exception as e:
-        return "Erro funcao version_exists"
+        return False
 
 
 def latest_version(package_name):

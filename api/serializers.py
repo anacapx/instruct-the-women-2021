@@ -9,16 +9,15 @@ class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PackageRelease
         fields = ["name", "version"]
-        extra_kwargs = {"version": {"required": False}}
+        extra_kwargs = {"version": {"required": False}}    
 
     def validate(self, data):
 
         if latest_version(data["name"]) == "None":        
             raise serializers.ValidationError()
-            return                        
+            return                      
 
-        if "version" in data.keys():            
-            
+        if "version" in data.keys():               
             v_exists = version_exists(data["name"], data["version"])
             if v_exists == False:
                 raise serializers.ValidationError()
@@ -41,6 +40,14 @@ class ProjectSerializer(serializers.ModelSerializer):
 
         projeto = Project(name=validated_data["name"])
         projeto.save()
+
+        packageNames = []
+        for pack in packages:
+            if pack["name"] in packageNames:
+                print('pcote já existe')
+                raise serializers.ValidationError()
+                return
+            packageNames.append(pack["name"])
 
         for pack in packages:
             package = PackageRelease(name=pack["name"], version=pack["version"], project=projeto)
