@@ -44,7 +44,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         packageNames = []
         for pack in packages:
             if pack["name"] in packageNames:
-                print('pcote já existe')
                 raise serializers.ValidationError()
                 return
             packageNames.append(pack["name"])
