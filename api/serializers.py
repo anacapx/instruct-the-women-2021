@@ -47,6 +47,7 @@ class ProjectSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError()
                 return
             packageNames.append(pack["name"])
+            
 
         for pack in packages:
             package = PackageRelease(name=pack["name"], version=pack["version"], project=projeto)
